@@ -1,6 +1,6 @@
 import json
 import sys
-import numpy as np
+import my_numpy as np
 import random
 import itertools
 
@@ -16,7 +16,7 @@ class Passenger:
         self.seat = seat
 
 def w(p1: Passenger, p2: Passenger):
-    return len(np.intersect1d(p1.interests, p2.interests))
+    return np.intersect1d_len(p1.interests, p2.interests)
 
 
 # list of passengers
