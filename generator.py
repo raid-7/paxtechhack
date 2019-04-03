@@ -1,18 +1,19 @@
+##############################
 # algorithm idea
 # 
 # asume there is a plane with 6n free places (n triples)
 # 
-# 1) using Edmonds algorithm choose 2n pairs of passengers having the most number of interests in common
+# 1) using Edmonds algorithm of blossom contraction choose 2n pairs of passengers
+#                                                   having the most number of interests in common
 # 2) use the hungarian algorithm to find maximal matching beetween these pairs and alones
 #
-
+##############################
 
 import json
 import sys
 import my_numpy as np
 import random
 import itertools
-import time
 
 
 class Passenger:
@@ -143,6 +144,7 @@ match = [-1 for _ in range(seats_number)]
 base = [-1 for _ in range(seats_number)]
 q = [0 for _ in range(seats_number)]
 
+# least common ancestor
 def lca(a, b):
     global match, p, base
 
@@ -194,6 +196,8 @@ def find_path(root):
             if base[v] == base[to] or match[v] == to:
                 continue
             if to == root or (match[to] != -1 and p[match[to]] != -1):
+                
+                # blossom contraction
                 curbase = lca(v, to)
                 blossom = [0 for _ in range(seats_number)]
                 mark_path(v, curbase, to)
@@ -217,6 +221,7 @@ def find_path(root):
 
     return -1
 
+# answer restoring
 for i in alones:
     if match[i] == -1:
         v = find_path(i)
