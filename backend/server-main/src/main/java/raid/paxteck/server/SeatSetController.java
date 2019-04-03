@@ -108,9 +108,11 @@ public class SeatSetController {
         }
 
         String resJson = new String(controller.getStdout(), StandardCharsets.UTF_8);
+        String stderr = new String(controller.getStdout(), StandardCharsets.UTF_8);
         JSONObject resObj = (JSONObject) JSONValue.parse(resJson);
 
         Logger.getLogger(getClass().getName()).info(resJson);
+        Logger.getLogger(getClass().getName()).warning(stderr);
 
         return String.valueOf(resObj.get(String.valueOf(id)));
     }
