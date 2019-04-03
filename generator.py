@@ -229,11 +229,11 @@ for i in alones:
 
 for i in sorted(filter(lambda x: match[x] != -1, alones), 
                 key=lambda j: -w(plane[j], plane[match[j]])):
+    if len(pairs) == triples_number - formed_triples:
+        break
     if i in alones:
         pairs.append((i, match[i]))
         alones.remove(i), alones.remove(match[i])
-    if len(pairs) == triples_number - formed_triples:
-        break
 
 # #########################################
 # #        Greedy algorithm
