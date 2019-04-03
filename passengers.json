@@ -4,13 +4,15 @@
             "football",
             "ancient history",
             "Rust"
-        ]
+        ],
+        "seat": "1C"
     },
     "Vasya": {
         "interests": [
             "cooking",
             "Rust"
-        ]
+        ],
+        "seat": "1A"
     },
     "Ivan": {
         "interests": [
