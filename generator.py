@@ -64,6 +64,20 @@ reserved = []
 # python3 --from_file <file_with_passengers.json>
 # python3 --stdin
 #
+def follow_the_road(passengers, n):
+    print(len(passengers))
+    random.shuffle(passengers)
+    passengers = passengers[:n]
+    seat_rows = [random.randint(1, 25) for _ in range(n)]
+    for p, seat_row in zip(passengers, seat_rows):
+        val = json.dumps({"interests" : p.interests,
+                          "seat": str(seat_row) + random.choice('A', 'B', 'C', 'D', 'E', 'F')})
+        print(val)
+        subprocess.run(['curl', '-X', 'POST', '-H', 
+                        'Content-type: application/json', 
+                        '--data', val, 'http://arm-cloud:7777/request_seat'])
+
+
 if sys.argv[1] == '--generate':
     with open(sys.argv[2]) as names_file:
         names = json.load(names_file)
