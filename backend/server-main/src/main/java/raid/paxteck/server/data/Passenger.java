@@ -1,25 +1,22 @@
 package raid.paxteck.server.data;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
+@Table(name="passengers")
 public class Passenger {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "passenger_interests",
-            joinColumns = @JoinColumn(name="passenger_id")
-    )
-    private List<String> interests = new ArrayList<>();
+    @Column(name="interests")
+    private String interests;
 
-    @Column
+    @Column(name="seat")
     private String assignedSeat;
 
     public Passenger() {
@@ -30,15 +27,17 @@ public class Passenger {
     }
 
     public void addInterest(String interest) {
-        interests.add(interest);
+        addInterests(List.of(interest));
     }
 
-    public void addInterests(Collection<String> interest) {
-        interests.addAll(interest);
+    public void addInterests(Collection<String> othInterests) {
+        Set<String> setInterests = new HashSet<>(getInterests());
+        setInterests.addAll(othInterests);
+        interests = String.join(",", setInterests);
     }
 
-    public List<String> getInterests() {
-        return Collections.unmodifiableList(interests);
+    public Set<String> getInterests() {
+        return interests == null ? Set.of() : Set.of(interests.split(","));
     }
 
     public String getAssignedSeat() {
