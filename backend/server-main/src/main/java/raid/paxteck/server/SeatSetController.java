@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 public class SeatSetController {
+    public static boolean clearAllPassengersFlag = false;
 
     private final PassengerRepository repo;
     private final Pattern seatPattern = Pattern.compile("(\\d+)([a-zA-Z])");
@@ -30,6 +31,10 @@ public class SeatSetController {
     @Autowired
     public SeatSetController(PassengerRepository repo) {
         this.repo = repo;
+        if (clearAllPassengersFlag) {
+            clearAllPassengersFlag = false;
+            repo.deleteAll();
+        }
     }
 
     @PostMapping(value = "/request_seat", consumes = "application/json")
