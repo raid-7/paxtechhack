@@ -1,8 +1,18 @@
+# algorithm idea
+# 
+# asume there is a plane with 6n free places (n triples)
+# 
+# 1) greedely (TODO: use Edmondson's algorithm) choose 2n pairs of passengers having the most number of interests in common
+# 2) use the hungarian algorithm to find maximal matching beetween these pairs and alones
+#
+
+
 import json
 import sys
 import my_numpy as np
 import random
 import itertools
+import time
 
 
 class Passenger:
@@ -75,8 +85,6 @@ else:
             plane.append(Passenger(name, **data))
             if 'seat' in data:
                 reserved.append(data['seat'])
-            if 'together_with' in data and len(data['together_with']) > 0:
-                pass
 
 
 # seats number
@@ -121,17 +129,121 @@ while i < len(fixed_passengers):
         places[plane[fixed_passengers[i]].name] = plane[fixed_passengers[i]].seat
         i += 1
 
-product = filter(lambda x: x[0] != x[1], itertools.product(alones, alones))
-product = sorted(product, key=lambda x: -w(plane[x[0]], plane[x[1]]))
+# rewrite it using edmond's algo
+
+#################################################
+n = len(alones)
+p, used, blossom = [], [], []
+match = [-1 for _ in range(seats_number)]
+base = [-1 for _ in range(seats_number)]
+q = [0 for _ in range(seats_number)]
+
+def lca(a, b):
+    global match, p, base
+
+    used1 = [False for _ in range(seats_number)]
+
+    while True:
+        a = base[a]
+        used1[a] = True
+        if match[a] == -1:
+            break
+        a = p[match[a]]
+
+    while True:
+        print(base[3])
+        b = base[b]
+        if used1[b]:
+            return b
+        b = p[match[b]]
 
 
-for pair in product:
-    if pair[0] in alones and pair[1] in alones:
-        pairs.append(pair)
-        alones.remove(pair[0]), alones.remove(pair[1])
-    
+def mark_path(v, b, children):
+    global base, blossom, match, p
+
+    while base[v] != b:
+        blossom[base[v]] = blossom[base[match[v]]] = True
+        p[v] = children
+        children = match[v]
+        v = p[match[v]]
+
+
+def find_path(root):
+    global used, p, q, base, blossom, n, match, alones
+
+    used = [False for _ in range(seats_number)]
+    p = [-1 for _ in range(seats_number)]
+
+    for i in alones:
+        base[i] = i
+
+    used[root] = True
+    q[0] = root
+    qh, qt = 0, 1
+
+    while qh < qt:
+        v = q[qh]
+        qh += 1
+
+        alones_copy = [u for u in alones if u != v]
+        for to in alones_copy:
+            if base[v] == base[to] or match[v] == to:
+                continue
+            if to == root or (match[to] != -1 and p[match[to]] != -1):
+                curbase = lca(v, to)
+                blossom = [0 for _ in range(seats_number)]
+                mark_path(v, curbase, to)
+                mark_path(to, curbase, v)
+
+                for i in alones:
+                    if blossom[base[i]]:
+                        base[i] = curbase
+                        if not used[i]:
+                            used[i] = True
+                            q[qt] = i
+                            qt += 1
+            elif p[to] == -1:
+                p[to] = v
+                if match[to] == -1:
+                    return to
+                to = match[to]
+                used[to] = True
+                q[qt] = to
+                qt += 1
+
+    return -1
+
+for i in alones:
+    if match[i] == -1:
+        v = find_path(i)
+        while v != -1:
+            pv = p[v]
+            ppv = match[pv]
+            match[v] = pv
+            match[pv] = v
+            v = ppv
+
+for i in sorted(filter(lambda x: match[x] != -1, alones), 
+                key=lambda j: -w(plane[j], plane[match[j]])):
+    if i in alones:
+        pairs.append((i, match[i]))
+        alones.remove(i), alones.remove(match[i])
     if len(pairs) == triples_number:
         break
+#################################
+
+# product = filter(lambda x: x[0] != x[1], itertools.product(alones, alones))
+# product = sorted(product, key=lambda x: -w(plane[x[0]], plane[x[1]]))
+
+
+# for pair in product:
+#     if pair[0] in alones and pair[1] in alones:
+#         pairs.append(pair)
+#         alones.remove(pair[0]), alones.remove(pair[1])
+    
+#     if len(pairs) == triples_number:
+#         break
+
 
 alones += forever_alones
 # hungarian algo
