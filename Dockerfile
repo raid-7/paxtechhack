@@ -8,7 +8,7 @@ COPY requirements.txt /app
 RUN pip3 install -r requirements.txt
 
 COPY backend/ /app/backend
-COPY generator.py /app
+COPY generator.py my_numpy.py /app/
 
 WORKDIR /app/backend/server-main
 RUN mvn clean install
