@@ -1,6 +1,9 @@
 package raid.paxteck.server.netinfo;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PassengerInfo {
     private String assignedSeat;
@@ -9,9 +12,9 @@ public class PassengerInfo {
     public PassengerInfo() {
     }
 
-    public PassengerInfo(List<String> interests, String assignedSeat) {
+    public PassengerInfo(Collection<String> interests, String assignedSeat) {
         this.assignedSeat = assignedSeat;
-        this.interests = interests;
+        this.interests = new ArrayList<>(interests);
     }
 
     public PassengerInfo(List<String> interests) {
