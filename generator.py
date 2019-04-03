@@ -235,39 +235,43 @@ for i in sorted(filter(lambda x: match[x] != -1, alones),
         pairs.append((i, match[i]))
         alones.remove(i), alones.remove(match[i])
 
-# #########################################
-# #        Greedy algorithm
-# ##########################################
+#########################################
+#        Greedy algorithm
+##########################################
 
-# product = filter(lambda x: x[0] != x[1], itertools.product(alones_copy_for_greedy_algo, 
-#                                                            alones_copy_for_greedy_algo))
-# product = sorted(product, key=lambda x: -w(plane[x[0]], plane[x[1]]))
-
-
-# for pair in product:
-#     if pair[0] in alones_copy_for_greedy_algo and \
-#        pair[1] in alones_copy_for_greedy_algo:
-#         pairs_greedy.append(pair)
-#         alones_copy_for_greedy_algo.remove(pair[0])
-#         alones_copy_for_greedy_algo.remove(pair[1])
-    
-#     if len(pairs_greedy) == triples_number - formed_triples:
-#         break
+product = filter(lambda x: x[0] != x[1], itertools.product(alones_copy_for_greedy_algo, 
+                                                           alones_copy_for_greedy_algo))
+product = sorted(product, key=lambda x: -w(plane[x[0]], plane[x[1]]))
 
 
+for pair in product:
+    if len(pairs_greedy) == triples_number - formed_triples:
+        break
+
+    if pair[0] in alones_copy_for_greedy_algo and \
+       pair[1] in alones_copy_for_greedy_algo:
+        pairs_greedy.append(pair)
+        alones_copy_for_greedy_algo.remove(pair[0])
+        alones_copy_for_greedy_algo.remove(pair[1])    
+
+
+# Choose the best option
+w_edm = sum([w(plane[pair[0]], plane[pair[1]]) for pair in pairs])
+w_gredy = sum([w(plane[pair[0]], plane[pair[1]]) for pair in pairs_greedy])
+
+if w_gredy > w_edm:
+    pairs = pairs_greedy
+    alones = alones_copy_for_greedy_algo
+
+# add delayed passengers
 alones += forever_alones
-# alones_copy_for_greedy_algo += forever_alones
 
-# # Choose the best option
-# w_edm = sum([w(plane[pair[0]], plane[pair[1]]) for pair in pairs])
-# w_gredy = sum([w(plane[pair[0]], plane[pair[1]]) for pair in pairs_greedy])
-
-# if w_gredy > w_edm:
-#     print(pairs_greedy)
-#     pairs = pairs_greedy
+assert(len(alones) == len(pairs))
 
 
-# hungarian algo
+#############################################
+#       Hungarian algo
+############################################
 
 # initializing needed lists
 u = [0 for _ in range(triples_number + 1)]
@@ -277,8 +281,6 @@ way = [0 for _ in range(triples_number + 1)]
 
 INF = 1e5
 n = len(alones)
-
-assert(len(alones) == len(pairs))
 
 # graph matrix
 a = [[-w(plane[pairs[i][0]], plane[alones[j]]) 
