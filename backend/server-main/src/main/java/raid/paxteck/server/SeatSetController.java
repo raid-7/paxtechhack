@@ -58,19 +58,20 @@ public class SeatSetController {
         return res;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private boolean areSeatsNear(String seatA, String seatB) {
         if (seatA.equalsIgnoreCase(seatB))
             return false;
 
-        Logger.getLogger(getClass().getName()).info(seatA + " : " + seatB);
-        
-        Matcher matcherA = seatPattern.matcher(seatA);
-        Matcher matcherB = seatPattern.matcher(seatB);
+        Matcher matcherA = seatPattern.matcher(seatA.trim());
+        matcherA.matches();
+        Matcher matcherB = seatPattern.matcher(seatB.trim());
+        matcherB.matches();
         long numericA = Integer.parseInt(matcherA.group(1));
         long numericB = Integer.parseInt(matcherB.group(1));
         long letterA = matcherA.group(2).toLowerCase().charAt(0);
         long letterB = matcherB.group(2).toLowerCase().charAt(0);
-        return Math.abs(letterA - letterB) < 1 && Math.abs(numericA - numericB) < 1;
+        return Math.abs(letterA - letterB) <= 1 && Math.abs(numericA - numericB) <= 1;
     }
 
     @SuppressWarnings("unchecked")
