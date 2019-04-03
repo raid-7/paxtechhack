@@ -210,7 +210,7 @@ for z in range(triples_number):
     if all(tpl):
         pass
     elif any(tpl):
-        if itertools.accumulate(tpl, lambda acc, x: acc ^ x):
+        if list(itertools.accumulate(tpl, lambda acc, x: acc ^ x))[-1]:
             y = [i, j, k][np.argmax(np.array(tpl))]
             seats = get_neighbours_for_one(y.seat)
 
@@ -222,8 +222,8 @@ for z in range(triples_number):
                     y += 1
         else:
             y = np.argsort(np.array(tpl))
-            seat = get_neighbour_for_two(tpl[y[1]].seat, tpl[y[2]].seat)
-            places[tpl[y[0]].name] = seat
+            seat = get_neighbour_for_two([i, j, k][y[1]].seat, [i, j, k][y[2]].seat)
+            places[[i, j, k][y[0]].name] = seat
             reserved.append(seat)
     else:
         places[i.name] = gen()
