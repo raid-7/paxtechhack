@@ -63,9 +63,9 @@ public class SeatSetController {
             return false;
 
         Logger.getLogger(getClass().getName()).info(seatA + " : " + seatB);
-        
-        Matcher matcherA = seatPattern.matcher(seatA);
-        Matcher matcherB = seatPattern.matcher(seatB);
+
+        Matcher matcherA = seatPattern.matcher(seatA.trim());
+        Matcher matcherB = seatPattern.matcher(seatB.trim());
         long numericA = Integer.parseInt(matcherA.group(1));
         long numericB = Integer.parseInt(matcherB.group(1));
         long letterA = matcherA.group(2).toLowerCase().charAt(0);
