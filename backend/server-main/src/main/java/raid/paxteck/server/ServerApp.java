@@ -21,7 +21,8 @@ public class ServerApp {
             dataSource.setUsername(System.getenv(JDBC_USER_VAR));
             dataSource.setPassword(System.getenv(JDBC_PASSWORD_VAR));
         } else {
-            dataSource.setUrl("jdbc:h2:file:./pax-test;DB_CLOSE_DELAY=-1");
+            dataSource.setUrl("jdbc:h2:file:./pax-test;mode=PostgreSQL;DB_CLOSE_DELAY=-1");
+            SeatSetController.clearAllPassengersFlag = true;
         }
         return dataSource;
     }

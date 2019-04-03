@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 public class SeatSetController {
+    public static boolean clearAllPassengersFlag = false;
 
     private final PassengerRepository repo;
     private final Pattern seatPattern = Pattern.compile("(\\d+)([a-zA-Z])");
@@ -30,6 +31,10 @@ public class SeatSetController {
     @Autowired
     public SeatSetController(PassengerRepository repo) {
         this.repo = repo;
+        if (clearAllPassengersFlag) {
+            clearAllPassengersFlag = false;
+            repo.deleteAll();
+        }
     }
 
     @PostMapping(value = "/request_seat", consumes = "application/json")
@@ -71,7 +76,7 @@ public class SeatSetController {
         long numericB = Integer.parseInt(matcherB.group(1));
         long letterA = matcherA.group(2).toLowerCase().charAt(0);
         long letterB = matcherB.group(2).toLowerCase().charAt(0);
-        return Math.abs(letterA - letterB) <= 1 && Math.abs(numericA - numericB) <= 1;
+        return Math.abs(letterA - letterB) <= 1 && Math.abs(numericA - numericB) < 1;
     }
 
     @SuppressWarnings("unchecked")
