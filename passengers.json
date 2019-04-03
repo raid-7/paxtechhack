@@ -1,0 +1,47 @@
+{
+    "Petya": {
+        "interests": [
+            "football",
+            "ancient history",
+            "Rust"
+        ]
+    },
+    "Vasya": {
+        "interests": [
+            "cooking",
+            "Rust"
+        ]
+    },
+    "Ivan": {
+        "interests": [
+            "cooking",
+            "video games",
+            "ancient history",
+            "arts"
+        ]
+    },
+    "Josh": {
+        "interests": [
+            "football",
+            "arts",
+            "video games",
+            "ancient history",
+            "gardening"
+        ]
+    },
+    "Mr Brown": {
+        "interests": [
+            "Japanese culture",
+            "anime",
+            "Rust"
+        ]
+    },
+    "Bread Black": {
+        "interests": [
+            "c++20",
+            "template magic",
+            "alchogol"
+        ]
+    }
+
+}
