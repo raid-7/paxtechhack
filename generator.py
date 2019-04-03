@@ -123,6 +123,10 @@ def next_place():
 
 gen = next_place()
 
-# places = {}
-# for j in range(triples_number):
-#     places[pairs[j]]
+places = {}
+for j in range(triples_number):
+    places[plane[pairs[p[j + 1] - 1][0]].name] = gen()
+    places[plane[pairs[p[j + 1] - 1][1]].name] = gen()
+    places[plane[alones[j]].name] = gen()
+
+print(json.dumps(places))
