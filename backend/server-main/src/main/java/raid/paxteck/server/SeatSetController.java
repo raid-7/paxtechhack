@@ -70,6 +70,8 @@ public class SeatSetController {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private boolean areSeatsNear(String seatA, String seatB) {
+        if (seatA == null || seatB == null)
+            return false;
         if (seatA.equalsIgnoreCase(seatB))
             return false;
 
