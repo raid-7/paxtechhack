@@ -3,7 +3,6 @@ package raid.paxteck.server.netinfo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class PassengerInfo {
     private String assignedSeat;

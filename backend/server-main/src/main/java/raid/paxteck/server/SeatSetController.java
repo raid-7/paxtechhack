@@ -54,6 +54,11 @@ public class SeatSetController {
         );
     }
 
+    @PostMapping(value = "/clear_all")
+    public void clearAll() {
+        repo.deleteAll();
+    }
+
     private List<Passenger> getNeighbors(String seat) {
         List<Passenger> res = new ArrayList<>();
         for (Passenger p : repo.findAll()) {
