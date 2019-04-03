@@ -169,20 +169,14 @@ for i in range(1, triples_number + 1):
 def next_place():
     current = '0F'
 
-    def __get():
+    def _get():
         nonlocal current
         if current[-1] == 'F':
             current = str(int(current[:-1]) + 1) + 'A'
         else:
             current = current[:-1] + chr(ord(current[-1]) + 1)
-        return current
-
-    def _get():
-        global reserved
-        seat = __get()
-        if seat in reserved:
-            return _get()
-        return seat 
+        
+        return current if current not in reserved else _get()
 
     return _get
 
