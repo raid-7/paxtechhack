@@ -102,9 +102,10 @@ public class SeatSetController {
         matcherB.matches();
         long numericA = Integer.parseInt(matcherA.group(1));
         long numericB = Integer.parseInt(matcherB.group(1));
-        long letterA = matcherA.group(2).toLowerCase().charAt(0);
-        long letterB = matcherB.group(2).toLowerCase().charAt(0);
-        return Math.abs(letterA - letterB) <= 1 && Math.abs(numericA - numericB) < 1;
+        char letterA = matcherA.group(2).toLowerCase().charAt(0);
+        char letterB = matcherB.group(2).toLowerCase().charAt(0);
+        return numericA == numericB &&
+                (Math.max(letterA, letterB) <= 'C' || Math.min(letterA, letterB) > 'C');
     }
 
     @SuppressWarnings("unchecked")
