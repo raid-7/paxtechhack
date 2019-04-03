@@ -2,7 +2,7 @@
 # 
 # asume there is a plane with 6n free places (n triples)
 # 
-# 1) greedely (TODO: use Edmondson's algorithm) choose 2n pairs of passengers having the most number of interests in common
+# 1) using Edmonds algorithm choose 2n pairs of passengers having the most number of interests in common
 # 2) use the hungarian algorithm to find maximal matching beetween these pairs and alones
 #
 
@@ -100,8 +100,8 @@ fixed_passengers = sorted(list(filter(lambda i: plane[i].seat is not None, alone
 
 def are_neighbours(p1, p2):
     return p1.seat[:-1] == p2.seat[:-1] and \
-           (min(ord(p1.seat[-1]), ord(p2.seat[-1])) <= ord('C') or \
-            max(ord(p1.seat[-1]), ord(p2.seat[-1])) >  ord('C'))
+           (max(ord(p1.seat[-1]), ord(p2.seat[-1])) <= ord('C') or \
+            min(ord(p1.seat[-1]), ord(p2.seat[-1])) >  ord('C'))
 
 i = 0
 formed_triples = 0
@@ -131,8 +131,11 @@ while i < len(fixed_passengers):
         places[plane[fixed_passengers[i]].name] = plane[fixed_passengers[i]].seat
         i += 1
 
-# rewrite it using edmond's algo
+pairs_greedy = [pair for pair in pairs]
+alones_copy_for_greedy_algo = [alone for alone in alones]
 
+################################################
+#   Edmonds algorithm 
 #################################################
 n = len(alones)
 p, used, blossom = [], [], []
@@ -231,22 +234,39 @@ for i in sorted(filter(lambda x: match[x] != -1, alones),
         alones.remove(i), alones.remove(match[i])
     if len(pairs) == triples_number - formed_triples:
         break
-#################################
 
-# product = filter(lambda x: x[0] != x[1], itertools.product(alones, alones))
+# #########################################
+# #        Greedy algorithm
+# ##########################################
+
+# product = filter(lambda x: x[0] != x[1], itertools.product(alones_copy_for_greedy_algo, 
+#                                                            alones_copy_for_greedy_algo))
 # product = sorted(product, key=lambda x: -w(plane[x[0]], plane[x[1]]))
 
 
 # for pair in product:
-#     if pair[0] in alones and pair[1] in alones:
-#         pairs.append(pair)
-#         alones.remove(pair[0]), alones.remove(pair[1])
+#     if pair[0] in alones_copy_for_greedy_algo and \
+#        pair[1] in alones_copy_for_greedy_algo:
+#         pairs_greedy.append(pair)
+#         alones_copy_for_greedy_algo.remove(pair[0])
+#         alones_copy_for_greedy_algo.remove(pair[1])
     
-#     if len(pairs) == triples_number:
+#     if len(pairs_greedy) == triples_number - formed_triples:
 #         break
 
 
 alones += forever_alones
+# alones_copy_for_greedy_algo += forever_alones
+
+# # Choose the best option
+# w_edm = sum([w(plane[pair[0]], plane[pair[1]]) for pair in pairs])
+# w_gredy = sum([w(plane[pair[0]], plane[pair[1]]) for pair in pairs_greedy])
+
+# if w_gredy > w_edm:
+#     print(pairs_greedy)
+#     pairs = pairs_greedy
+
+
 # hungarian algo
 
 # initializing needed lists
@@ -345,9 +365,10 @@ for z in range(n):
               plane[alones[z]]
     
     tpl = (i.name in places, j.name in places, k.name in places)
-    assert(not all(tpl))
 
-    if any(tpl):
+    if all(tpl):
+        pass
+    elif any(tpl):
         if list(itertools.accumulate(tpl, lambda acc, x: acc ^ x))[-1]:
             y = [i, j, k][np.argmax(np.array(tpl))]
             seats = get_neighbours_for_one(y.seat)
