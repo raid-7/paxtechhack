@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Entity
+@Table(name="passengers")
 public class Passenger {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +20,7 @@ public class Passenger {
     )
     private List<String> interests = new ArrayList<>();
 
-    @Column
+    @Column(name="seat")
     private String assignedSeat;
 
     public Passenger() {
