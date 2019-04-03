@@ -35,12 +35,14 @@ if sys.argv[1] == '--generate':
             name_interests.append(random.choice(interests))
         plane.append(Passenger(name, np.array(name_interests)))
 else:
-    with open(sys.argv[1]) as passengers_file:
+    with sys.stdin if sys.argv[1] == '--stdin' else open(sys.argv[2]) as passengers_file:
         passengers = json.load(passengers_file)
         assert(0 == len(passengers) % 6)
 
         for name, data in passengers.items():
             plane.append(Passenger(name, np.array(data['interests'])))
+
+
 seats_number = len(plane)
 triples_number = seats_number // 3
 
@@ -114,7 +116,7 @@ def next_place():
     def _get():
         nonlocal current
         if current[-1] == 'F':
-            current = str(int(current[0]) + 1) + 'A'
+            current = str(int(current[:-1]) + 1) + 'A'
         else:
             current = current[:-1] + chr(ord(current[-1]) + 1)
         return current
