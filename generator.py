@@ -9,14 +9,34 @@ class Passenger:
     name: str
     interests: np.array
     seat: str
+    age: int
 
-    def __init__(self, name, interests, seat=None):
+    def __init__(self, name, interests, seat=None, age=None):
         self.name = name
         self.interests = interests
         self.seat = seat
+        self.age = age
 
+def bin_search(arr, n):
+    l, r = 0, len(arr)
+    while r - l > 1:
+        m = (l + r) // 2
+        if arr[m] <= n:
+            l = m
+        else:
+            r = m
+    return l
+        
 def w(p1: Passenger, p2: Passenger):
-    return np.intersect1d_len(p1.interests, p2.interests)
+    def w_age(p1, p2):
+        age_zones = [5, 12, 18, 30, 45, 65]
+        coeffs = [.5, 0., -.5, -.5, -1., 0.]
+        if p1.age is None or p2.age is None:
+            return 0
+        z1, z2 = bin_search(age_zones, p1.age), bin_search(age_zones, p2.age)
+        return coeffs[int(abs(z1 - z2))]
+
+    return np.intersect1d_len(p1.interests, p2.interests) + w_age(p1, p2)
 
 
 # list of passengers
@@ -42,17 +62,16 @@ if sys.argv[1] == '--generate':
         name_interests = []
         for _ in range(0, random.randint(2, 4)):
             name_interests.append(random.choice(interests))
-        plane.append(Passenger(name, np.array(name_interests)))
+        plane.append(Passenger(name, name_interests, seat=None, age=random.randint(1, 70)))
 else:
     with sys.stdin if sys.argv[1] == '--stdin' else open(sys.argv[2]) as passengers_file:
         passengers = json.load(passengers_file)
         assert(0 == len(passengers) % 6)
 
         for name, data in passengers.items():
-            plane.append(Passenger(name, np.array(data['interests'])))
+            plane.append(Passenger(name, **data))
             if 'seat' in data:
                 reserved.append(data['seat'])
-                plane[-1].seat = data['seat']
 
 
 # seats number
@@ -100,6 +119,7 @@ while i < len(fixed_passengers):
 product = filter(lambda x: x[0] != x[1], itertools.product(alones, alones))
 product = sorted(product, key=lambda x: -w(plane[x[0]], plane[x[1]]))
 
+
 for pair in product:
     if pair[0] in alones and pair[1] in alones:
         pairs.append(pair)
@@ -109,7 +129,6 @@ for pair in product:
         break
 
 alones += forever_alones
-
 # hungarian algo
 
 # initializing needed lists

@@ -5,14 +5,16 @@
             "ancient history",
             "Rust"
         ],
-        "seat": "1C"
+        "seat": "1C",
+        "age": 18
     },
     "Vasya": {
         "interests": [
             "cooking",
             "Rust"
         ],
-        "seat": "1A"
+        "seat": "1A",
+        "age": 18
     },
     "Ivan": {
         "interests": [
@@ -20,7 +22,8 @@
             "video games",
             "ancient history",
             "arts"
-        ]
+        ],
+        "age": 70
     },
     "Josh": {
         "interests": [
@@ -29,14 +32,16 @@
             "video games",
             "ancient history",
             "gardening"
-        ]
+        ],
+        "age": 11
     },
     "Mr Brown": {
         "interests": [
             "Japanese culture",
             "anime",
             "Rust"
-        ]
+        ],
+        "age": 11
     },
     "Bread Black": {
         "interests": [
