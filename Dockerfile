@@ -15,4 +15,4 @@ WORKDIR /app/backend/server-main
 RUN mvn clean install
 
 WORKDIR /app
-CMD java --add-modules java.se.ee -jar backend/server-main/target/server-main-1.0-SNAPSHOT.jar --spring.jpa.hibernate.ddl-auto=update --spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQL9Dialect
+CMD java --add-modules java.se.ee -jar backend/server-main/target/server-main-1.0-SNAPSHOT.jar
