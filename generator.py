@@ -7,15 +7,18 @@ import itertools
 
 class Passenger:
     name: str
-    interests: np.array
+    interests: list #of str
     seat: str
     age: int
+    together_with: list #of str
 
-    def __init__(self, name, interests, seat=None, age=None):
+    def __init__(self, name, interests, seat=None, age=None, together_with=[]):
         self.name = name
         self.interests = interests
         self.seat = seat
         self.age = age
+        self.together_with = together_with
+
 
 def bin_search(arr, n):
     l, r = 0, len(arr)
@@ -72,6 +75,8 @@ else:
             plane.append(Passenger(name, **data))
             if 'seat' in data:
                 reserved.append(data['seat'])
+            if 'together_with' in data and len(data['together_with']) > 0:
+                pass
 
 
 # seats number
@@ -138,25 +143,27 @@ p = [0 for _ in range(triples_number + 1)]
 way = [0 for _ in range(triples_number + 1)]
 
 INF = 1e5
+n = len(alones)
 
+assert(len(alones) == len(pairs))
 
 # graph matrix
 a = [[-w(plane[pairs[i][0]], plane[alones[j]]) 
-      -w(plane[pairs[i][1]], plane[alones[j]]) for j in range(triples_number)] 
-                                               for i in range(triples_number)]
+      -w(plane[pairs[i][1]], plane[alones[j]]) for j in range(len(alones))] 
+                                               for i in range(len(alones))]
 
-for i in range(1, triples_number + 1):
+for i in range(1, n + 1):
     p[0] = i
     j0 = 0
-    minv = [INF for _ in range(triples_number + 1)]
-    used = [False for _ in range(triples_number + 1)]
+    minv = [INF for _ in range(n + 1)]
+    used = [False for _ in range(n + 1)]
     while True:
         used[j0] = True
         i0 = p[j0]
         delta = INF
         j1 = 0
         
-        for j in range(1, triples_number + 1):
+        for j in range(1, n + 1):
             if not used[j]:
                 cur = a[i0 - 1][j - 1] - u[i0] - v[j]
                 if cur < minv[j]:
@@ -165,7 +172,7 @@ for i in range(1, triples_number + 1):
                 if minv[j] < delta:
                     delta = minv[j]
                     j1 = j
-        for j in range(triples_number + 1):
+        for j in range(n + 1):
             if used[j]:
                 u[p[j]] += delta
                 v[j] -= delta
@@ -219,16 +226,15 @@ def get_neighbour_for_two(seat1, seat2):
 
 
 # answer
-for z in range(triples_number):
+for z in range(n):
     i, j, k = plane[pairs[p[z + 1] - 1][0]],\
               plane[pairs[p[z + 1] - 1][1]],\
               plane[alones[z]]
     
     tpl = (i.name in places, j.name in places, k.name in places)
+    assert(not all(tpl))
 
-    if all(tpl):
-        pass
-    elif any(tpl):
+    if any(tpl):
         if list(itertools.accumulate(tpl, lambda acc, x: acc ^ x))[-1]:
             y = [i, j, k][np.argmax(np.array(tpl))]
             seats = get_neighbours_for_one(y.seat)
