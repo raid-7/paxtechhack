@@ -9,6 +9,7 @@
 #
 ##############################
 
+import subprocess
 import json
 import sys
 import my_numpy as np
@@ -64,21 +65,26 @@ reserved = []
 # python3 --from_file <file_with_passengers.json>
 # python3 --stdin
 #
-def follow_the_road(passengers, n):
+def follow_the_road(passengers, n, reserve_seats=False):
     print(len(passengers))
     random.shuffle(passengers)
     passengers = passengers[:n]
     seat_rows = [random.randint(1, 25) for _ in range(n)]
     for p, seat_row in zip(passengers, seat_rows):
-        val = json.dumps({"interests" : p.interests,
-                          "seat": str(seat_row) + random.choice('A', 'B', 'C', 'D', 'E', 'F')})
+        p_obj = {"interests" : p.interests}
+        if reserve_seats:
+            p_obj["seat"] = str(seat_row) + random.choice(['A', 'B', 'C', 'D', 'E', 'F'])
+        val = json.dumps(p_obj)
         print(val)
-        subprocess.run(['curl', '-X', 'POST', '-H', 
-                        'Content-type: application/json', 
-                        '--data', val, 'http://arm-cloud:7777/request_seat'])
+        subprocess.run([
+            'curl', '-X', 'POST',
+            '-H', 'Content-type: application/json', 
+            '--data', val,
+            'http://arm-cloud:7777/' + ('reserve_seat' if reserve_seats else 'request_seat')
+        ])
 
 
-if sys.argv[1] == '--generate':
+if sys.argv[1] == '--generate' or sys.argv[1] == '--generate-reserve':
     with open(sys.argv[2]) as names_file:
         names = json.load(names_file)
         assert(0 == len(names) % 6)
@@ -91,6 +97,10 @@ if sys.argv[1] == '--generate':
         for _ in range(0, random.randint(2, 4)):
             name_interests.append(random.choice(interests))
         plane.append(Passenger(name, name_interests, seat=None, age=random.randint(1, 70)))
+
+    follow_the_road(plane, int(sys.argv[4]) if len(sys.argv) > 4 else 10,
+        sys.argv[1] == '--generate-reserve')
+    exit(0)
 else:
     with sys.stdin if sys.argv[1] == '--stdin' else open(sys.argv[2]) as passengers_file:
         passengers = json.load(passengers_file)

@@ -17,7 +17,7 @@ public class Passenger {
     private String interests;
 
     @Column(name="seat")
-    private String assignedSeat;
+    private String seat;
 
     public Passenger() {
     }
@@ -40,11 +40,11 @@ public class Passenger {
         return interests == null ? Set.of() : Set.of(interests.split(","));
     }
 
-    public String getAssignedSeat() {
-        return assignedSeat;
+    public String getSeat() {
+        return seat;
     }
 
-    public void setAssignedSeat(String assignedSeat) {
-        this.assignedSeat = assignedSeat;
+    public void setSeat(String seat) {
+        this.seat = seat;
     }
 }
