@@ -104,6 +104,7 @@ def are_neighbours(p1, p2):
             max(ord(p1.seat[-1]), ord(p2.seat[-1])) >  ord('C'))
 
 i = 0
+formed_triples = 0
 while i < len(fixed_passengers):
     if i + 2 < len(fixed_passengers) and \
         are_neighbours(plane[fixed_passengers[i]], plane[fixed_passengers[i + 1]]) and \
@@ -111,6 +112,7 @@ while i < len(fixed_passengers):
         alones.remove(fixed_passengers[i])
         alones.remove(fixed_passengers[i + 1])
         alones.remove(fixed_passengers[i + 2])
+        formed_triples += 1
         places[plane[fixed_passengers[i]].name] = plane[fixed_passengers[i]].seat
         places[plane[fixed_passengers[i + 1]].name] = plane[fixed_passengers[i + 1]].seat
         places[plane[fixed_passengers[i + 2]].name] = plane[fixed_passengers[i + 2]].seat
@@ -151,7 +153,6 @@ def lca(a, b):
         a = p[match[a]]
 
     while True:
-        print(base[3])
         b = base[b]
         if used1[b]:
             return b
@@ -228,7 +229,7 @@ for i in sorted(filter(lambda x: match[x] != -1, alones),
     if i in alones:
         pairs.append((i, match[i]))
         alones.remove(i), alones.remove(match[i])
-    if len(pairs) == triples_number:
+    if len(pairs) == triples_number - formed_triples:
         break
 #################################
 
