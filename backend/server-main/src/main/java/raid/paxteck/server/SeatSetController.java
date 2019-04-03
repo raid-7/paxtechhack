@@ -4,6 +4,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,7 +16,9 @@ import raid.paxteck.server.netinfo.SeatResponse;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,6 +60,24 @@ public class SeatSetController {
     @PostMapping(value = "/clear_all")
     public void clearAll() {
         repo.deleteAll();
+    }
+
+    @GetMapping("/consistency_check")
+    public String checkAll() {
+        List<Passenger> passengers = new ArrayList<>();
+        Set<String> seats = new HashSet<>();
+        for (Passenger p : passengers) {
+            String seat = p.getAssignedSeat();
+            if (seat == null)
+                continue;
+
+            if (!seats.add(seat)) {
+                // fatal
+                return "FATAL\n" + seat;
+            }
+        }
+
+        return "CONSISTENT";
     }
 
     private List<Passenger> getNeighbors(String seat) {

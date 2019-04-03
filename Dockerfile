@@ -3,6 +3,7 @@ FROM maven:3.6.0-jdk-10-slim
 RUN apt-get update && apt-get install -y python3 python3-pip nano htop
 
 WORKDIR /app
+VOLUME "/root/.m2"
 
 COPY requirements.txt /app
 RUN pip3 install -r requirements.txt
