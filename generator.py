@@ -1,13 +1,15 @@
-##############################
+##################################################################################################
 # algorithm idea
 # 
 # asume there is a plane with 6n free places (n triples)
 # 
-# 1) using Edmonds algorithm of blossom contraction choose 2n pairs of passengers
-#                                                   having the most number of interests in common
+# 1) somehow choose 2n pairs of passengers having the most number of interests in common
+#      !) used strategies here:
+#          - greed
+#          - edmonds algorithm of blossom contraction with binary search on the minimal edge weight 
 # 2) use the hungarian algorithm to find maximal matching beetween these pairs and alones
 #
-##############################
+##################################################################################################
 
 import json
 import sys
@@ -146,141 +148,157 @@ while i < len(fixed_passengers):
         places[plane[fixed_passengers[i]].name] = plane[fixed_passengers[i]].seat
         i += 1
 
-pairs_greedy = [pair for pair in pairs]
-alones_copy_for_greedy_algo = [alone for alone in alones]
+
+# general function for pairs generation
+def get_pairs(algo, _alones, _pairs, **kwargs):
+    ans = algo([_ for _ in _alones], [_ for _ in _pairs], **kwargs)
+    if ans is None:
+        return None, -10
+    return ans, sum([w(plane[pair[0]], plane[pair[1]]) for pair in ans])
 
 ################################################
 #   Edmonds algorithm 
 #################################################
-n = len(alones)
-p, used, blossom = [], [], []
-match = [-1 for _ in range(seats_number)]
-base = [-1 for _ in range(seats_number)]
-q = [0 for _ in range(seats_number)]
+def edmonds(alones, pairs, min_weight=0):
+    n = len(alones)
+    p, used, blossom = [], [], []
+    match = [-1 for _ in range(seats_number)]
+    base = [-1 for _ in range(seats_number)]
+    q = [0 for _ in range(seats_number)]
 
-# least common ancestor
-def lca(a, b):
-    global match, p, base
+    # least common ancestor
+    def lca(a, b):
+        nonlocal match, p, base
 
-    used1 = [False for _ in range(seats_number)]
+        used1 = [False for _ in range(seats_number)]
 
-    while True:
-        a = base[a]
-        used1[a] = True
-        if match[a] == -1:
-            break
-        a = p[match[a]]
+        while True:
+            a = base[a]
+            used1[a] = True
+            if match[a] == -1:
+                break
+            a = p[match[a]]
 
-    while True:
-        b = base[b]
-        if used1[b]:
-            return b
-        b = p[match[b]]
-
-
-def mark_path(v, b, children):
-    global base, blossom, match, p
-
-    while base[v] != b:
-        blossom[base[v]] = blossom[base[match[v]]] = True
-        p[v] = children
-        children = match[v]
-        v = p[match[v]]
+        while True:
+            b = base[b]
+            if used1[b]:
+                return b
+            b = p[match[b]]
 
 
-def find_path(root):
-    global used, p, q, base, blossom, n, match, alones
+    def mark_path(v, b, children):
+        nonlocal base, blossom, match, p
 
-    used = [False for _ in range(seats_number)]
-    p = [-1 for _ in range(seats_number)]
+        while base[v] != b:
+            blossom[base[v]] = blossom[base[match[v]]] = True
+            p[v] = children
+            children = match[v]
+            v = p[match[v]]
 
+
+    def find_path(root):
+        nonlocal used, p, q, base, blossom, n, match, alones
+
+        used = [False for _ in range(seats_number)]
+        p = [-1 for _ in range(seats_number)]
+
+        for i in alones:
+            base[i] = i
+
+        used[root] = True
+        q[0] = root
+        qh, qt = 0, 1
+
+        while qh < qt:
+            v = q[qh]
+            qh += 1
+
+            alones_copy = [u for u in alones if u != v and w(plane[u], plane[v]) >= min_weight]
+            for to in alones_copy:
+                if base[v] == base[to] or match[v] == to:
+                    continue
+                if to == root or (match[to] != -1 and p[match[to]] != -1):
+                    
+                    # blossom contraction
+                    curbase = lca(v, to)
+                    blossom = [0 for _ in range(seats_number)]
+                    mark_path(v, curbase, to)
+                    mark_path(to, curbase, v)
+
+                    for i in alones:
+                        if blossom[base[i]]:
+                            base[i] = curbase
+                            if not used[i]:
+                                used[i] = True
+                                q[qt] = i
+                                qt += 1
+                elif p[to] == -1:
+                    p[to] = v
+                    if match[to] == -1:
+                        return to
+                    to = match[to]
+                    used[to] = True
+                    q[qt] = to
+                    qt += 1
+
+        return -1
+
+    # answer restoring
     for i in alones:
-        base[i] = i
+        if match[i] == -1:
+            v = find_path(i)
+            while v != -1:
+                pv = p[v]
+                ppv = match[pv]
+                match[v] = pv
+                match[pv] = v
+                v = ppv
 
-    used[root] = True
-    q[0] = root
-    qh, qt = 0, 1
+    for i in sorted(filter(lambda x: match[x] != -1, alones), 
+                    key=lambda j: -w(plane[j], plane[match[j]])):
+        if len(pairs) == triples_number - formed_triples:
+            break
+        if i in alones:
+            pairs.append((i, match[i]))
+            alones.remove(i), alones.remove(match[i])
 
-    while qh < qt:
-        v = q[qh]
-        qh += 1
-
-        alones_copy = [u for u in alones if u != v]
-        for to in alones_copy:
-            if base[v] == base[to] or match[v] == to:
-                continue
-            if to == root or (match[to] != -1 and p[match[to]] != -1):
-                
-                # blossom contraction
-                curbase = lca(v, to)
-                blossom = [0 for _ in range(seats_number)]
-                mark_path(v, curbase, to)
-                mark_path(to, curbase, v)
-
-                for i in alones:
-                    if blossom[base[i]]:
-                        base[i] = curbase
-                        if not used[i]:
-                            used[i] = True
-                            q[qt] = i
-                            qt += 1
-            elif p[to] == -1:
-                p[to] = v
-                if match[to] == -1:
-                    return to
-                to = match[to]
-                used[to] = True
-                q[qt] = to
-                qt += 1
-
-    return -1
-
-# answer restoring
-for i in alones:
-    if match[i] == -1:
-        v = find_path(i)
-        while v != -1:
-            pv = p[v]
-            ppv = match[pv]
-            match[v] = pv
-            match[pv] = v
-            v = ppv
-
-for i in sorted(filter(lambda x: match[x] != -1, alones), 
-                key=lambda j: -w(plane[j], plane[match[j]])):
-    if len(pairs) == triples_number - formed_triples:
-        break
-    if i in alones:
-        pairs.append((i, match[i]))
-        alones.remove(i), alones.remove(match[i])
+    return pairs if len(pairs) == triples_number - formed_triples else None
 
 #########################################
 #        Greedy algorithm
 ##########################################
 
-product = filter(lambda x: x[0] != x[1], itertools.product(alones_copy_for_greedy_algo, 
-                                                           alones_copy_for_greedy_algo))
-product = sorted(product, key=lambda x: -w(plane[x[0]], plane[x[1]]))
+def greedy(_alones, _pairs):
+    product = filter(lambda x: x[0] != x[1], itertools.product(alones, alones))
+    product = sorted(product, key=lambda x: -w(plane[x[0]], plane[x[1]]))
 
+    for pair in product:
+        if len(pairs) == triples_number - formed_triples:
+            break
 
-for pair in product:
-    if len(pairs_greedy) == triples_number - formed_triples:
-        break
+        if pair[0] in alones and pair[1] in alones:
+            pairs.append(pair)
+            alones.remove(pair[0])
+            alones.remove(pair[1])
 
-    if pair[0] in alones_copy_for_greedy_algo and \
-       pair[1] in alones_copy_for_greedy_algo:
-        pairs_greedy.append(pair)
-        alones_copy_for_greedy_algo.remove(pair[0])
-        alones_copy_for_greedy_algo.remove(pair[1])    
+    return pairs
 
 
 # Choose the best option
-w_edm = sum([w(plane[pair[0]], plane[pair[1]]) for pair in pairs])
-w_gredy = sum([w(plane[pair[0]], plane[pair[1]]) for pair in pairs_greedy])
+pairs_edmonds, w_edmonds = [], -1.
+l, r, eps = 0., 5., 0.2
+while r - l > eps:
+    m = (r + l) / 2
+    p, weight = get_pairs(edmonds, alones, pairs, min_weight=m)
+    if weight > w_edmonds:
+        pairs_edmonds, w_edmonds = p, weight
+        l = m
+    else:
+        r = m
 
-if w_gredy > w_edm:
-    pairs = pairs_greedy
-    alones = alones_copy_for_greedy_algo
+pairs_greedy, w_greedy = get_pairs(greedy, alones, pairs)
+
+pairs = pairs_greedy if w_greedy > w_edmonds else pairs_edmonds 
 
 # add delayed passengers
 alones += forever_alones
