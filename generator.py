@@ -68,26 +68,46 @@ reserved = []
 # python3 --stdin
 #
 def follow_the_road(passengers, n, reserve_seats=False):
-    print(len(passengers))
+    if reserve_seats and n < 100:
+        print("Wrong params")
+        exit(1)
+
     random.shuffle(passengers)
     passengers = passengers[:n]
-    seat_rows = [random.randint(1, 25) for _ in range(n)]
-    for p, seat_row in zip(passengers, seat_rows):
-        p_obj = {"interests" : p.interests}
-        if reserve_seats:
-            p_obj["assignedSeat"] = str(seat_row) + random.choice(['A', 'B', 'C', 'D', 'E', 'F'])
-        val = json.dumps(p_obj)
-        print(val)
-        subprocess.run([
-            'curl', '-X', 'POST',
-            '-H', 'Content-type: application/json', 
-            '--data', val,
-            'http://arm-cloud:7777/' + ('reserve_seat' if reserve_seats else 'request_seat')
-        ])
-        print()
+    seat_rows = list(range(1, 26))
+    for seat_row in seat_rows:
+        for letters_lists in [['A', 'B', 'C'], ['D', 'E', 'F']]:
+            copied = [_ for _ in letters_lists]
+            copied.remove(random.choice(copied))
+            for letter in copied:
+                p = passengers.pop()
+                p_obj = {"interests" : p.interests}
+                if reserve_seats:
+                    p_obj["assignedSeat"] = str(seat_row) + letter
+                val = json.dumps(p_obj)
+                print(val)
+                subprocess.run([
+                    'curl', '-X', 'POST',
+                    '-H', 'Content-type: application/json', 
+                    '--data', val,
+                    'http://arm-cloud:7777/' + ('reserve_seat' if reserve_seats else 'request_seat')
+                ])
+                print()
 
 
-if sys.argv[1] == '--generate' or sys.argv[1] == '--generate-reserve':
+if sys.argv[1] == "--free-list":
+    all_places = list(map(
+        lambda p: str(p[0]) + str(p[1]),
+        itertools.product(range(1, 26), ['A', 'B', 'C', 'D', 'E', 'F'])
+    ))
+    with sys.stdin if sys.argv[2] == '--stdin' else open(sys.argv[2]) as file:
+        reserved_places = json.load(file)
+    for res in reserved_places:
+        all_places.remove(res)
+    print(json.dumps(all_places))
+    exit(0)
+
+elif sys.argv[1] == '--generate' or sys.argv[1] == '--generate-reserve':
     with open(sys.argv[2]) as names_file:
         names = json.load(names_file)
         assert(0 == len(names) % 6)
