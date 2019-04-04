@@ -60,7 +60,7 @@ public class SeatSetController {
     public SeatResponse registerNextPassengerWithSeat(@RequestBody PassengerInfo info) {
         String seat = info.getAssignedSeat();
         Iterator<Passenger> passengersBySeat = repo.getPassengersBySeat(seat).iterator();
-        boolean seatFree = passengersBySeat.hasNext();
+        boolean seatFree = !passengersBySeat.hasNext();
 
         if (!seatFree) {
             Logger.getLogger(getClass().getName()).warning("Try to reserve " + seat);
