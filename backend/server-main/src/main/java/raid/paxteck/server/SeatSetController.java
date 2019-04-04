@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RestController
 public class SeatSetController {
@@ -45,7 +46,7 @@ public class SeatSetController {
         passenger.addInterests(info.getInterests());
         passenger = repo.save(passenger);
 
-        String seat = runSeatMatchingAlgorithm(passenger.getId());
+        String seat = runRaidSeatMatching(passenger.getId());
         passenger.setSeat(seat);
         repo.save(passenger);
         List<Passenger> neighbors = getNeighbors(seat);
@@ -83,29 +84,6 @@ public class SeatSetController {
         );
     }
 
-    @PostMapping(value = "/clear_all")
-    public void clearAll() {
-        repo.deleteAll();
-    }
-
-    @GetMapping("/consistency_check")
-    public String checkAll() {
-        List<Passenger> passengers = new ArrayList<>();
-        Set<String> seats = new HashSet<>();
-        for (Passenger p : passengers) {
-            String seat = p.getSeat();
-            if (seat == null)
-                continue;
-
-            if (!seats.add(seat)) {
-                // fatal
-                return "FATAL\n" + seat;
-            }
-        }
-
-        return "CONSISTENT";
-    }
-
     private List<Passenger> getNeighbors(String seat) {
         List<Passenger> res = new ArrayList<>();
         for (Passenger p : repo.findAll()) {
@@ -134,18 +112,54 @@ public class SeatSetController {
                 (Math.max(letterA, letterB) <= 'C' || Math.min(letterA, letterB) > 'C');
     }
 
+    private String getExtraSeat(String seatA, String seatB) {
+        Matcher matcherA = seatPattern.matcher(seatA.trim());
+        matcherA.matches();
+        Matcher matcherB = seatPattern.matcher(seatB.trim());
+        matcherB.matches();
+        long numericA = Integer.parseInt(matcherA.group(1));
+        long numericB = Integer.parseInt(matcherB.group(1));
+        char letterA = matcherA.group(2).toUpperCase().charAt(0);
+        char letterB = matcherB.group(2).toUpperCase().charAt(0);
+
+        if (numericA != numericB)
+            throw new RuntimeException("Internal");
+
+        List<String> letters;
+        if (Math.max(letterA, letterB) <= 'C') {
+            letters = Arrays.asList("A", "B", "C");
+        } else if (Math.min(letterA, letterB) > 'C') {
+            letters = Arrays.asList("D", "E", "F");
+        } else {
+            throw new RuntimeException("Internal");
+        }
+
+        letters.removeAll(List.of(String.valueOf(letterA), String.valueOf(letterB)));
+        return numericA + letters.iterator().next();
+    }
+
+    private String runRaidSeatMatching(long id) {
+        List<String> reserved = StreamSupport.stream(repo.findAll().spliterator(), false)
+                .map(Passenger::getSeat)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        Set<String> reservedSet = new HashSet<>(reserved);
+        for (String seatA : reserved)
+            for (String seatB : reserved) {
+                if (!areSeatsNear(seatA, seatB))
+                    continue;
+
+                String seat = getExtraSeat(seatA, seatB);
+                if (!reservedSet.contains(seat))
+                    return seat;
+            }
+
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No free seats");
+    }
+
     @SuppressWarnings("unchecked")
     private String runSeatMatchingAlgorithm(long id) {
-        JSONObject passengers = new JSONObject();
-        for (Passenger p : repo.findAll()) {
-            JSONArray interests = new JSONArray();
-            interests.addAll(p.getInterests());
-            JSONObject passengerJson = new JSONObject();
-            passengerJson.put("interests", interests);
-            if (p.getSeat() != null)
-                passengerJson.put("seat", p.getSeat());
-            passengers.put(String.valueOf(p.getId()), passengerJson);
-        }
+        JSONObject passengers = getPassengersJson();
 
         for (int anonCount = 6 - passengers.size() % 6, i =0; i < anonCount; ++i) {
             JSONObject passengerJson = new JSONObject();
@@ -175,5 +189,19 @@ public class SeatSetController {
         Logger.getLogger(getClass().getName()).warning(stderr);
 
         return String.valueOf(resObj.get(String.valueOf(id)));
+    }
+
+    private JSONObject getPassengersJson() {
+        JSONObject passengers = new JSONObject();
+        for (Passenger p : repo.findAll()) {
+            JSONArray interests = new JSONArray();
+            interests.addAll(p.getInterests());
+            JSONObject passengerJson = new JSONObject();
+            passengerJson.put("interests", interests);
+            if (p.getSeat() != null)
+                passengerJson.put("seat", p.getSeat());
+            passengers.put(String.valueOf(p.getId()), passengerJson);
+        }
+        return passengers;
     }
 }
