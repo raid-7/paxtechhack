@@ -17,10 +17,7 @@ import raid.paxteck.server.netinfo.SeatResponse;
 
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,10 +59,16 @@ public class SeatSetController {
     @PostMapping(value = "/reserve_seat", consumes = "application/json")
     public SeatResponse registerNextPassengerWithSeat(@RequestBody PassengerInfo info) {
         String seat = info.getAssignedSeat();
-        boolean seatFree = repo.getPassengersBySeat(seat).isEmpty();
+        Iterator<Passenger> passengersBySeat = repo.getPassengersBySeat(seat).iterator();
+        boolean seatFree = !passengersBySeat.hasNext();
 
-        if (!seatFree)
+        if (!seatFree) {
+            Logger.getLogger(getClass().getName()).warning("Try to reserve " + seat);
+            while (passengersBySeat.hasNext()) {
+                Logger.getLogger(getClass().getName()).warning("Booked by " + passengersBySeat.next().getId());
+            }
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This seat is already reserved");
+        }
 
         Passenger passenger = new Passenger();
         passenger.addInterests(info.getInterests());

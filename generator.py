@@ -84,6 +84,7 @@ def follow_the_road(passengers, n, reserve_seats=False):
             '--data', val,
             'http://arm-cloud:7777/' + ('reserve_seat' if reserve_seats else 'request_seat')
         ])
+        print()
 
 
 if sys.argv[1] == '--generate' or sys.argv[1] == '--generate-reserve':
