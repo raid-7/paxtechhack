@@ -4,10 +4,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import raid.paxteck.server.data.Passenger;
 import raid.paxteck.server.data.PassengerRepository;
 import raid.paxteck.server.netinfo.PassengerInfo;
@@ -47,12 +49,33 @@ public class SeatSetController {
         passenger = repo.save(passenger);
 
         String seat = runSeatMatchingAlgorithm(passenger.getId());
-        passenger.setAssignedSeat(seat);
+        passenger.setSeat(seat);
         repo.save(passenger);
         List<Passenger> neighbors = getNeighbors(seat);
 
         return new SeatResponse(seat, neighbors.stream()
-                .map(p -> new PassengerInfo(p.getInterests(), p.getAssignedSeat()))
+                .map(p -> new PassengerInfo(p.getInterests(), p.getSeat()))
+                .collect(Collectors.toList())
+        );
+    }
+
+    @PostMapping(value = "/reserve_seat", consumes = "application/json")
+    public SeatResponse registerNextPassengerWithSeat(@RequestBody PassengerInfo info) {
+        String seat = info.getAssignedSeat();
+        boolean seatFree = repo.getPassengersBySeat(seat).isEmpty();
+
+        if (!seatFree)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This seat is already reserved");
+
+        Passenger passenger = new Passenger();
+        passenger.addInterests(info.getInterests());
+        passenger.setSeat(seat);
+        passenger = repo.save(passenger);
+
+        List<Passenger> neighbors = getNeighbors(seat);
+
+        return new SeatResponse(seat, neighbors.stream()
+                .map(p -> new PassengerInfo(p.getInterests(), p.getSeat()))
                 .collect(Collectors.toList())
         );
     }
@@ -67,7 +90,7 @@ public class SeatSetController {
         List<Passenger> passengers = new ArrayList<>();
         Set<String> seats = new HashSet<>();
         for (Passenger p : passengers) {
-            String seat = p.getAssignedSeat();
+            String seat = p.getSeat();
             if (seat == null)
                 continue;
 
@@ -83,7 +106,7 @@ public class SeatSetController {
     private List<Passenger> getNeighbors(String seat) {
         List<Passenger> res = new ArrayList<>();
         for (Passenger p : repo.findAll()) {
-            if (areSeatsNear(p.getAssignedSeat(), seat))
+            if (areSeatsNear(p.getSeat(), seat))
                 res.add(p);
         }
         return res;
@@ -102,8 +125,8 @@ public class SeatSetController {
         matcherB.matches();
         long numericA = Integer.parseInt(matcherA.group(1));
         long numericB = Integer.parseInt(matcherB.group(1));
-        char letterA = matcherA.group(2).toLowerCase().charAt(0);
-        char letterB = matcherB.group(2).toLowerCase().charAt(0);
+        char letterA = matcherA.group(2).toUpperCase().charAt(0);
+        char letterB = matcherB.group(2).toUpperCase().charAt(0);
         return numericA == numericB &&
                 (Math.max(letterA, letterB) <= 'C' || Math.min(letterA, letterB) > 'C');
     }
@@ -116,8 +139,8 @@ public class SeatSetController {
             interests.addAll(p.getInterests());
             JSONObject passengerJson = new JSONObject();
             passengerJson.put("interests", interests);
-            if (p.getAssignedSeat() != null)
-                passengerJson.put("seat", p.getAssignedSeat());
+            if (p.getSeat() != null)
+                passengerJson.put("seat", p.getSeat());
             passengers.put(String.valueOf(p.getId()), passengerJson);
         }
 
