@@ -11,12 +11,12 @@
 #
 ##################################################################################################
 
-import subprocess
 import json
 import sys
 import my_numpy as np
 import random
 import itertools
+import subprocess
 
 
 class Passenger:
