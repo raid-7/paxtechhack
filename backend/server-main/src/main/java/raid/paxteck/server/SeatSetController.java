@@ -150,6 +150,7 @@ public class SeatSetController {
                     continue;
 
                 String seat = getExtraSeat(seatA, seatB);
+                Logger.getLogger(getClass().getName()).info(seatA + " " + seatB + seat);
                 if (!reservedSet.contains(seat))
                     return seat;
             }
