@@ -63,7 +63,19 @@ def follow_the_road(passengers, n):
 # python3 --from_file <file_with_passengers.json>
 # python3 --stdin
 #
-if sys.argv[1] == '--generate':
+if sys.argv[1] == "--free-list":
+    all_places = list(map(
+        lambda p: str(p[0]) + str(p[1]),
+        itertools.product(range(1, 26), ['A', 'B', 'C', 'D', 'E', 'F'])
+    ))
+    with sys.stdin if sys.argv[2] == '--stdin' else open(sys.argv[2]) as file:
+        reserved_places = json.load(file)
+    for res in reserved_places:
+        all_places.remove(res)
+    print(json.dumps(all_places))
+    exit(0)
+    
+elif sys.argv[1] == '--generate':
     with open(sys.argv[2]) as names_file:
         names = json.load(names_file)
         assert(0 == len(names) % 6)

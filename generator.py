@@ -75,7 +75,7 @@ def follow_the_road(passengers, n, reserve_seats=False):
     for p, seat_row in zip(passengers, seat_rows):
         p_obj = {"interests" : p.interests}
         if reserve_seats:
-            p_obj["seat"] = str(seat_row) + random.choice(['A', 'B', 'C', 'D', 'E', 'F'])
+            p_obj["assignedSeat"] = str(seat_row) + random.choice(['A', 'B', 'C', 'D', 'E', 'F'])
         val = json.dumps(p_obj)
         print(val)
         subprocess.run([
