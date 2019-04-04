@@ -46,7 +46,7 @@ public class SeatSetController {
         passenger.addInterests(info.getInterests());
         passenger = repo.save(passenger);
 
-        String seat = runRaidSeatMatching(passenger.getId());
+        String seat = runSeatMatchingAlgorithm(passenger.getId());
         passenger.setSeat(seat);
         repo.save(passenger);
         List<Passenger> neighbors = getNeighbors(seat);
@@ -162,7 +162,7 @@ public class SeatSetController {
     private String runSeatMatchingAlgorithm(long id) {
         JSONObject passengers = getPassengersJson();
 
-        for (int anonCount = 6 - passengers.size() % 6, i =0; i < anonCount; ++i) {
+        for (int anonCount = 150 - passengers.size(), i =0; i < anonCount; ++i) {
             JSONObject passengerJson = new JSONObject();
             passengerJson.put("interests", new JSONArray());
             passengers.put("__" + i, passengerJson);
